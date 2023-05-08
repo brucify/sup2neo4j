@@ -29,8 +29,11 @@ declare -a sup_relationships=()
 # Loop over each worker and supervisor result
 while read -r line; do
   # Extract the value after "CHILD" and before the first ","
-#  child=$(echo "$line" | sed -n 's/.*CHILD(\([^,]*\),.*/\1/p')
-  child=$(echo "$line" | sed -n 's/.*CHILD([^,]*,\ \([^,]*\),[^,]*,.*/\1/p')
+#  child=$(echo "$line" | sed -n 's/.*CHILD(\([^,]*\),.*/\1/p') # before the first ","
+  child=$(echo "$line" | sed -n 's/.*CHILD([^,]*,\ \([^,]*\),[^,]*,.*/\1/p') # before the second "," 
+
+  # Extract start_link args
+  start_link_args=$(echo "$line" | sed -n 's/.*CHILD([^[]*\([^]]*\)].*/\1]/p')
 
   # Extract the value immediately before ".erl"
   sup=$(echo "$line" | sed -n 's/.*\/\(.*_sup\)\.erl:.*/\1/p')
@@ -59,9 +62,9 @@ while read -r line; do
 
   # Output the relationship between the supervisor and the worker/supervisor
   if [ "$label" = "Worker" ]; then
-    worker_relationships+=('MATCH (s:Supervisor), (c:Worker) WHERE s.name = "'$sup'" AND c.name = "'$child'" CREATE (s)-[:START_LINK]->(c);')
+    worker_relationships+=('MATCH (s:Supervisor), (c:Worker) WHERE s.name = "'$sup'" AND c.name = "'$child'" CREATE (s)-[:START_LINK{args: "'$start_link_args'"}]->(c);')
   else
-    sup_relationships+=('MATCH (s:Supervisor), (c:Supervisor) WHERE s.name = "'$sup'" AND c.name = "'$child'" CREATE (s)-[:START_LINK]->(c);')
+    sup_relationships+=('MATCH (s:Supervisor), (c:Supervisor) WHERE s.name = "'$sup'" AND c.name = "'$child'" CREATE (s)-[:START_LINK{args: "'$start_link_args'"}]->(c);')
   fi
 
 done <<< "$(printf '%s\n%s' "$worker_results" "$sup_results")"
@@ -86,3 +89,4 @@ echo ""
 for rel in "${sup_relationships[@]}"; do
   printf '%s\n' "$rel"
 done
+
