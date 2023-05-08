@@ -30,7 +30,7 @@ declare -a sup_relationships=()
 while read -r line; do
   # Extract the value after "CHILD" and before the first ","
 #  child=$(echo "$line" | sed -n 's/.*CHILD(\([^,]*\),.*/\1/p') # before the first ","
-  child=$(echo "$line" | sed -n 's/.*CHILD([^,]*,\ \([^,]*\),[^,]*,.*/\1/p') # before the second "," 
+  child=$(echo "$line" | sed -n 's/.*CHILD([^,]*,\ \([^,]*\),.*/\1/p') # before the second "," 
 
   # Extract start_link args
   start_link_args=$(echo "$line" | sed -n 's/.*CHILD([^[]*\([^]]*\)].*/\1]/p')
