@@ -15,9 +15,11 @@
 # limitations under the License.
 # 
 
+search_pattern="CHILD("
+
 # Find all lines containing ", worker" and "_sup.erl"
-worker_results=$(git grep ", worker" | grep _sup.erl | grep apps | grep CHILD | sed 's/{[^}]*}/ChildId/g')
-sup_results=$(git grep ", supervisor" | grep _sup.erl | grep apps | grep CHILD | sed 's/{[^}]*}/ChildId/g')
+worker_results=$(git grep ", worker" | grep _sup.erl | grep apps | grep $search_pattern | sed 's/{[^}]*}/ChildId/g')
+sup_results=$(git grep ", supervisor" | grep _sup.erl | grep apps | grep $search_pattern | sed 's/{[^}]*}/ChildId/g')
 
 # Declare arrays to store unique workers and sups
 declare -a workers=()
@@ -28,12 +30,12 @@ declare -a sup_relationships=()
 
 # Loop over each worker and supervisor result
 while read -r line; do
-  # Extract the value after "CHILD" and before the first ","
-#  child=$(echo "$line" | sed -n 's/.*CHILD(\([^,]*\),.*/\1/p') # before the first ","
-  child=$(echo "$line" | sed -n 's/.*CHILD([^,]*,\ \([^,]*\),.*/\1/p') # before the second "," 
+  # Extract the value after $search_pattern and before the first ","
+#  child=$(echo "$line" | sed -n 's/.*'$search_pattern'\([^,]*\),.*/\1/p') # before the first ","
+  child=$(echo "$line" | sed -n 's/.*'$search_pattern'[^,]*,\ \([^,]*\),.*/\1/p') # before the second "," 
 
   # Extract start_link args
-  start_link_args=$(echo "$line" | sed -n 's/.*CHILD([^[]*\([^]]*\)].*/\1]/p')
+  start_link_args=$(echo "$line" | sed -n 's/.*'$search_pattern'[^[]*\([^]]*\)].*/\1]/p')
 
   # Extract the value immediately before ".erl"
   sup=$(echo "$line" | sed -n 's/.*\/\(.*_sup\)\.erl:.*/\1/p')
